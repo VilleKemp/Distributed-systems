@@ -4,8 +4,10 @@ import tornado.web
 import tornado.httpclient
 import random
 import sys
+import httplib2
 
 import urllib
+http = httplib2.Http()
 
 from tornado.log import enable_pretty_logging
 enable_pretty_logging()
@@ -58,20 +60,25 @@ class MyFormHandler(tornado.web.RequestHandler):
 
 class CoordinatorHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
-    @gen.engine
-    def post(self):
-        data=self.request.body
-        print "Coordinator POST: " + data
-        http_client = tornado.httpclient.AsyncHTTPClient()
-        #body = urllib.urlencode(data)
-        resp=yield http_client.fetch("http://localhost:8889/node/") #Send it off!
-        print "Coordinator POST response: " + resp
+    #@gen.engine
+    def get(self):
         
+        print "Coordinator GET: Send request to Node " 
+
+        #body = urllib.urlencode(data)
+        self.response,self.content= http.request("http://localhost:8889/node/","GET") #Send it off!
+        print "Coordinator GET response: "  + self.content
+        self._async_callback(self.response)
+
+    def _async_callback(self, response):
+        print response
+        self.finish()
+        tornado.ioloop.IOLoop.instance().stop()   
         
                 
 class NodeHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
-    @gen.engine
+    #@gen.engine
     def post(self):
         print "NODE POST: "
         data=self.request.body
@@ -79,16 +86,20 @@ class NodeHandler(tornado.web.RequestHandler):
 
     def get(self):
         print "Node GET: "
-        data=self.request.body
+        #data=self.request.body
         value=random.randint(0,1)
         if (value):
             coin = "Heads"
         else:
             coin="Tails"
-        data = data+"Answer:"+coin
+        
         print "Returning"
-        raise tornado.gen.Return(data)   
-                
+        self._async_callback(coin)   
+
+    def _async_callback(self, response):
+        print response
+        self.finish()
+        tornado.ioloop.IOLoop.instance().stop()                
         
     
 if __name__ == "__main__":
