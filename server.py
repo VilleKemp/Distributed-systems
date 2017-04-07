@@ -68,12 +68,13 @@ class CoordinatorHandler(tornado.web.RequestHandler):
         #body = urllib.urlencode(data)
         self.response,self.content= http.request("http://localhost:8889/node/","GET") #Send it off!
         print "Coordinator GET response: "  + self.content
-        self._async_callback(self.response)
+        self._async_callback(self.content)
 
     def _async_callback(self, response):
-        print response
+        print "Controller " +response
+        self.write(response)
         self.finish()
-        tornado.ioloop.IOLoop.instance().stop()   
+        #tornado.ioloop.IOLoop.instance().stop()   
         
                 
 class NodeHandler(tornado.web.RequestHandler):
@@ -97,9 +98,10 @@ class NodeHandler(tornado.web.RequestHandler):
         self._async_callback(coin)   
 
     def _async_callback(self, response):
-        print response
+        print "node"+response
+        self.write(response)
         self.finish()
-        tornado.ioloop.IOLoop.instance().stop()                
+        #tornado.ioloop.IOLoop.instance().stop()                
         
     
 if __name__ == "__main__":
