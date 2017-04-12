@@ -13,12 +13,8 @@ class CoinHandler(tornado.web.RequestHandler):
             coin = "Heads"
         else:
             coin="Tails"
-            
-        
+
         self.write(coin)
-
-
-
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -35,10 +31,10 @@ class MyFormHandler(tornado.web.RequestHandler):
 
     def post(self):
         req=self.request.body
-        self.write(req)      
+        self.write(req)
         #self.set_header("Content-Type", "text/plain")
         #self.write("You wrote " + self.get_body_argument("message"))
-    
+
 if __name__ == "__main__":
     application = tornado.web.Application([
         (r"/", MainHandler),
@@ -47,4 +43,3 @@ if __name__ == "__main__":
     ])
     application.listen(int(sys.argv[1]))
     tornado.ioloop.IOLoop.current().start()
-
