@@ -1,0 +1,31 @@
+<html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+<script>
+$(document).ready(function(){
+    $("button").click(function(){
+        $.post("http://localhost:8889/coordinator/",
+        {
+          guess : $(this).attr('name')
+        },
+        function(response){
+            document.getElementById("response").innerHTML = response;
+        });
+    });
+});
+</script>
+</head>
+   <body>
+  
+<button name="heads"">HEAD</button>
+<button name= "tails">TAILS</button>
+ <p id="response"></p>
+
+<script>
+function play(coin) {
+    
+    document.getElementById("response").innerHTML = "Hello World";
+}
+</script> 
+   </body>
+ </html>

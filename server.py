@@ -11,7 +11,8 @@ http = httplib2.Http()
 
 from tornado.log import enable_pretty_logging
 enable_pretty_logging()
-
+import time
+import datetime
 class CoinHandler(tornado.web.RequestHandler):
     def get(self):
         value=random.randint(0,1)
@@ -64,14 +65,14 @@ class CoordinatorHandler(tornado.web.RequestHandler):
     def get(self):
         
         print "Coordinator GET: Send request to Node " 
-
+        
         #body = urllib.urlencode(data)
         self.response,self.content= http.request("http://localhost:8889/node/","GET") #Send it off!
         print "Coordinator GET response: "  + self.content
         self._async_callback(self.content)
 
     def _async_callback(self, response):
-        print "Controller " +response
+        print "Coordinator returns:  " +response
         self.write(response)
         self.finish()
         #tornado.ioloop.IOLoop.instance().stop()   
@@ -93,17 +94,19 @@ class NodeHandler(tornado.web.RequestHandler):
             coin = "Heads"
         else:
             coin="Tails"
-        
+
+        #tornado.ioloop.IOLoop.instance().add_timeout(datetime.timedelta(seconds=5), self.get)
         print "Returning"
         self._async_callback(coin)   
 
     def _async_callback(self, response):
-        print "node"+response
+        print "Node returns: "+response
         self.write(response)
         self.finish()
         #tornado.ioloop.IOLoop.instance().stop()                
         
-    
+    def test():
+        print "Waiting for 5 seconds"
 if __name__ == "__main__":
     application = tornado.web.Application([
         (r"/", MainHandler),
