@@ -8,8 +8,13 @@ import random
 import sys
 import urllib
 import time
+import httplib2
+httplib2.debuglevel=1
+http=httplib2.Http()
 
 enable_pretty_logging()
+
+GATEWAY = "http://localhost:8888/startup/"
 
 class NodeHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
@@ -45,7 +50,6 @@ class CoordinatorHandler(tornado.web.RequestHandler):
         print response
         self.finish()
 
-
     @gen.coroutine
     def post (self):
         print "POST"
@@ -58,7 +62,6 @@ class CoordinatorHandler(tornado.web.RequestHandler):
         self.write(data)
         self.finish()
 
-
     def set_default_headers(self):
         self.add_header('Access-Control-Allow-Origin', self.request.headers.get('Origin', '*'))
         self.add_header('Access-Control-Request-Method', 'POST')
@@ -70,6 +73,14 @@ if __name__=="__main__":
         (r"/node/", NodeHandler),
         (r"/coordinator/", CoordinatorHandler),
         ], debug=1)
+    response, content = http.request(GATEWAY, method='GET', headers=None, body=None) #Send it off!
+    print "Response from gateway on get: "+content
+    if content == "None":
+        print "sending port via post"
+        post_data = {"port":sys.argv[1]}
+        body = urllib.urlencode(post_data)
+        response, content = http.request(GATEWAY, method='POST', headers=None, body=str(sys.argv[1]))
+
     application.listen(int(sys.argv[1]))
     print "Server in port " + sys.argv[1]
     tornado.ioloop.IOLoop.instance().start()

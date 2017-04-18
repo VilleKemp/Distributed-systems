@@ -23,7 +23,8 @@ class StartupHandler(tornado.web.RequestHandler):
         #Tells connecting node the address of the coordinator
         global data
         self.write(data[COORDPORT])
-        print "In GET: data updated: "+ data
+        print "In GET: data updated: "
+        print data
 
     def post(self):
         #receive coordinator's port number
