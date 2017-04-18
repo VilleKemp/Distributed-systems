@@ -8,14 +8,15 @@ import random
 import sys
 import urllib
 import time
+import json
 
 enable_pretty_logging()
 
 class NodeHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @gen.engine
-    def get(self):
-        self.write('sleepdarting the coinflip:\n')
+    def post(self):
+        #self.write('sleepdarting the coinflip:\n')
         yield gen.Task(tornado.ioloop.IOLoop.instance().add_timeout, time.time()+5)
         value=random.randint(0,1)
         if (value):
@@ -23,7 +24,14 @@ class NodeHandler(tornado.web.RequestHandler):
         else:
             coin = "Tails"
         print "Returning coins"
-        self._async_callback(coin)
+        guess=json.loads(self.request.body)
+        
+        if (guess['guess']==coin):
+            answer="You guessed "+guess['guess']+" coin flip was "+ coin +". You win!"
+        else:
+            answer="You guessed "+guess['guess']+" coin flip was "+ coin +". You lose!"
+            
+        self._async_callback(answer)
 
     def _async_callback(self, response):
         print response
@@ -46,19 +54,24 @@ class CoordinatorHandler(tornado.web.RequestHandler):
     @gen.coroutine
     def post (self):
         print "POST"
-        print self.request.body
-#
-        http_client = tornado.httpclient.AsyncHTTPClient()
-        response = yield http_client.fetch("http://localhost:8890/node/", method='GET')
-        data=response.body
+        #request=json.loads(self.request.body)
         
-        self.write(data)
+        http_client = tornado.httpclient.AsyncHTTPClient()
+        response = yield http_client.fetch("http://localhost:8890/node/", method='POST',body=self.request.body)
+        return_value=response.body
+        
+        self.write(return_value)
         self.finish()
 
 
     def set_default_headers(self):
         self.add_header('Access-Control-Allow-Origin', self.request.headers.get('Origin', '*'))
         self.add_header('Access-Control-Request-Method', 'POST')
+
+    
+
+
+
 
 if __name__=="__main__":
 
