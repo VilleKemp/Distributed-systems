@@ -31,16 +31,37 @@ class NodeHandler(tornado.web.RequestHandler):
         self.finish()
         #running only 1 IOLoop, stopping closes the server
         #tornado.ioloop.IOLoop.instance().stop()
+
 class CoordinatorHandler(tornado.web.RequestHandler):
     @gen.coroutine
     def get(self):
         http_client = tornado.httpclient.AsyncHTTPClient()
+
         response = yield http_client.fetch("http://localhost:8889/node/", method='GET')
+
         data=self.request.body
         print "Coordinator GET: " + data
         self.write(response.body)
         print response
         self.finish()
+
+
+    @gen.coroutine
+    def post (self):
+        print "POST"
+        print self.request.body
+
+        http_client = tornado.httpclient.AsyncHTTPClient()
+        response = yield http_client.fetch("http://localhost:8890/node/", method='GET')
+        data=response.body
+
+        self.write(data)
+        self.finish()
+
+
+    def set_default_headers(self):
+        self.add_header('Access-Control-Allow-Origin', self.request.headers.get('Origin', '*'))
+        self.add_header('Access-Control-Request-Method', 'POST')
 
 
 if __name__=="__main__":
