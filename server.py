@@ -20,12 +20,8 @@ class CoinHandler(tornado.web.RequestHandler):
             coin = "Heads"
         else:
             coin="Tails"
-            
-        
+
         self.write(coin)
-
-
-
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -50,6 +46,11 @@ class MyFormHandler(tornado.web.RequestHandler):
     def post(self):
         req=self.request.body
         self.write(req)
+<<<<<<< HEAD
+        #self.set_header("Content-Type", "text/plain")
+        #self.write("You wrote " + self.get_body_argument("message"))
+
+=======
         print "Form handler POST: " + req
         
         
@@ -107,6 +108,7 @@ class NodeHandler(tornado.web.RequestHandler):
         
     def test():
         print "Waiting for 5 seconds"
+>>>>>>> 98784144650b2ad4abc3d2987b015a560c520eb5
 if __name__ == "__main__":
     application = tornado.web.Application([
         (r"/", MainHandler),
@@ -118,4 +120,3 @@ if __name__ == "__main__":
     application.listen(int(sys.argv[1]))
     print "Server in port: " + sys.argv[1]
     tornado.ioloop.IOLoop.current().start()
-
