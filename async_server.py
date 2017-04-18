@@ -24,16 +24,22 @@ class NodeHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     @gen.engine
     def post(self):
-        #self.write('sleepdarting the coinflip:\n')
+        """
+        Game logic. Takes the users guess and compares it to self generated coinflip.
+        """
+        #Timeout for testing purposes
         yield gen.Task(tornado.ioloop.IOLoop.instance().add_timeout, time.time()+5)
+        #generate coin-flip
         value=random.randint(0,1)
         if (value):
             coin = "Heads"
         else:
             coin = "Tails"
         print "Returning coins"
+        #turns request body to json format for easier use
         guess=json.loads(self.request.body)
-        
+
+        #checks the winner and generates answer string
         if (guess['guess']==coin):
             answer="You guessed "+guess['guess']+" coin flip was "+ coin +". You win!"
         else:
@@ -51,26 +57,19 @@ class NodeHandler(tornado.web.RequestHandler):
 class CoordinatorHandler(tornado.web.RequestHandler):
     @gen.coroutine
     def get(self):
-        http_client = tornado.httpclient.AsyncHTTPClient()
-
-        response = yield http_client.fetch("http://localhost:8889/node/", method='GET')
-
-        data=self.request.body
-        print "Coordinator GET: " + data
-        self.write(response.body)
-        print response
-        self.finish()
+        print "Coordinator GET"
 
     @gen.coroutine
     def post (self):
-        print "POST"
-
-        #request=json.loads(self.request.body)
-        
+        """
+        Takes clients request, forwards it to node
+        which calculates the game result and then responds the result to client
+        """
         http_client = tornado.httpclient.AsyncHTTPClient()
+        #sends post to node for game results
         response = yield http_client.fetch("http://localhost:8890/node/", method='POST',body=self.request.body)
         return_value=response.body
-        
+        #Return the string which came from the node
         self.write(return_value)
 
         self.finish()

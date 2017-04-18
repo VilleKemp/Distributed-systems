@@ -3,6 +3,7 @@ import tornado.web
 import tornado.httpclient
 from tornado import gen
 from tornado.log import enable_pretty_logging
+from bs4 import BeautifulSoup
 
 import random
 import sys
@@ -13,9 +14,14 @@ enable_pretty_logging()
 PORT = '8888'
 COORDPORT = 'coordinatorPort'
 data = {COORDPORT:"None"}
+
+    
 class GameHandler(tornado.web.RequestHandler):
     @gen.coroutine
     def get(self):
+        """
+        Renders the game
+        """
         self.render("game.html")
         
 class StartupHandler(tornado.web.RequestHandler):
@@ -37,9 +43,16 @@ class StartupHandler(tornado.web.RequestHandler):
         global data
         if data[COORDPORT]=="None":
             data[COORDPORT]=port
+            #modifies the game.html to have the right coordinator port
+            modify_html(port)
             print "new coordinatorPort: " + str(port)
         print "check" + str(data[COORDPORT])
 
+    def modfify_html(self,port):
+        """Modifies the game.html to have the right coordinator port"""
+
+        
+        
 if __name__=="__main__":
 
     application = tornado.web.Application([
