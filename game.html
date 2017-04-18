@@ -5,9 +5,10 @@
 $(document).ready(function(){
     $("button").click(function(){
         $.post("http://localhost:8889/coordinator/",
-        {
-          guess : $(this).attr('name')
-        },
+        JSON.stringify({
+          "guess" : $(this).attr('name'),
+          "filler" : "hh"
+        }),
         function(response){
             document.getElementById("response").innerHTML = response;
         });
@@ -17,15 +18,12 @@ $(document).ready(function(){
 </head>
    <body>
   
-<button name="heads"">HEAD</button>
-<button name= "tails">TAILS</button>
+<button name="Heads"">HEAD</button>
+<button name= "Tails">TAILS</button>
  <p id="response"></p>
 
 <script>
-function play(coin) {
-    
-    document.getElementById("response").innerHTML = "Hello World";
-}
+
 </script> 
    </body>
  </html>
