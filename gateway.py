@@ -71,6 +71,7 @@ class StartupHandler(tornado.web.RequestHandler):
             </script>
             </head>
                <body>
+<<<<<<< HEAD
 
             <button name="Heads"">HEAD</button>
             <button name= "Tails">TAILS</button>
@@ -80,6 +81,19 @@ class StartupHandler(tornado.web.RequestHandler):
         file.close()
 
 
+=======
+              
+            <button name="Heads"">HEAD</button>
+            <button name= "Tails">TAILS</button>
+             <p id="response"></p>
+
+
+               </body>
+             </html>""")
+        file.close()
+                    
+        
+>>>>>>> 3633bbb51954a3bc0dc202c764f690a85f3bb2aa
 if __name__=="__main__":
 
     application = tornado.web.Application([
