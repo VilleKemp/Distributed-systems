@@ -1,30 +1,25 @@
 <html>
-<head>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
-<script>
-$(document).ready(function(){
-    $("button").click(function(){
-        document.getElementById("response").innerHTML = "Loading...";
-        $.post("http://localhost:8889/coordinator/",
-        JSON.stringify({
-          "guess" : $(this).attr('name'),
-          "filler" : "hh"
-        }),
-        function(response){
-            document.getElementById("response").innerHTML = response;
-        });
-    });
-});
-</script>
-</head>
-   <body>
-  
-<button name="Heads"">HEAD</button>
-<button name= "Tails">TAILS</button>
- <p id="response"></p>
-
-<script>
-
-</script> 
-   </body>
- </html>
+            <head>
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+            <script>
+            $(document).ready(function(){
+                $("button").click(function(){
+                    document.getElementById("response").innerHTML = "Loading...";
+                    $.post("http://localhost:8889/coordinator/",
+                    JSON.stringify({
+                      "guess" : $(this).attr('name'),
+                      "filler" : "hh"
+                    }),
+                    function(response){
+                        document.getElementById("response").innerHTML = response;
+                    });
+                });
+            });
+            </script>
+            </head>
+               <body>
+            <button name="Heads"">HEAD</button>
+            <button name= "Tails">TAILS</button>
+             <p id="response"></p>
+               </body>
+             </html>
