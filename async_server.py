@@ -141,7 +141,7 @@ class CoordinatorHandler(tornado.web.RequestHandler):
         SLAVE = "http://localhost:%s/node/" % worker
         print "CoordinatorHandler POST: Workload sent to " + SLAVE
         #sends post to node for game results
-        response = yield http_client.fetch(SLAVE, method='POST',body=self.request.body)
+        response = yield http_client.fetch(SLAVE,handle_response, method='POST',body=self.request.body)
 
         return_value=response.body
         #Return the string which came from the node
@@ -202,6 +202,11 @@ def main():
     #boot up and determine the role of the instance
     startServer()
 
+def handle_response(response):
+    if response.error:
+        print("Errorhandler: Error %s" % response.error)
+    else:
+        print(response.body)
 
 if __name__=="__main__":
 
