@@ -41,15 +41,16 @@ class Node:
 class Coordinator:
     #"""Implements Coordinator object logic"""
 
-    def checkState(self, port, workload):
+    def checkWorkload(self, port, workload):
         address = "http://localhost:%s/getstate/" % port
         response, content = http.request(address, method='GET')
-        if int(content) == workload:
+        if int(content) <= workload: #assumes that other workloads are correct
             print"class Coordinator: checkState(): workload confirmed at %s with %s" %(address, content)
             cache[nodes][port]+=1 #+1 to selected workload
             return True
         else:
             print "class Coordinator: checkState(): workloads do not match at: %s with %s. (Local info was %s)" %(address, content, workload)
+            cache[nodes][port]=int(content) #correct local workload info if actual workload was higher
             return False
 
     def selectWorker(self):
@@ -67,11 +68,9 @@ class Coordinator:
 
             print "class Coordinator: selectWorker(): selected worker: " + selected
 
-            if self.checkState(selected, min_):
-                pass
-            else:
-                #request workloads from all nodes, an error has happened
-                pass
+            if not self.checkWorkload(selected, min_):
+                self.selectWorker()
+
         else:
             print "class Coordinator: selectWorker(): no cache[nodes], returning None"
         return selected
@@ -94,7 +93,7 @@ class NodeHandler(tornado.web.RequestHandler):
         #Timeout for testing purposes
         global nodeWorkload
         nodeWorkload +=1
-        print "NodeHandler: workload added at " + sys.argv[1]
+        print "NodeHandler: workload added at %s. Workload %d" %(sys.argv[1], nodeWorkload)
         yield gen.Task(tornado.ioloop.IOLoop.instance().add_timeout, time.time()+5)
         #generate coin-flip
         value=random.randint(0,1)
@@ -119,7 +118,7 @@ class NodeHandler(tornado.web.RequestHandler):
         self.write(response)
         global nodeWorkload
         nodeWorkload -= 1
-        print "NodeHandler: workload reduced at " + sys.argv[1]
+        print "NodeHandler: workload reduced at %s. Workload %d" %(sys.argv[1], nodeWorkload)
         self.finish()
         #running only 1 IOLoop, stopping closes the server
         #tornado.ioloop.IOLoop.instance().stop()
