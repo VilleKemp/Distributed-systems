@@ -22,7 +22,7 @@ GATEWAY = "http://localhost:8888/startup/"
 COORDPORT = 'coordinatorPort'
 nodes = 'nodes'
 cache = {COORDPORT:"None", nodes:{}}
-
+nodeWorkload = 0
 server = None #server object
 
 class Node:
@@ -30,17 +30,27 @@ class Node:
 
     def informCoordinator(self):
         """send address to coordinator"""
-        COORDINATOR="http://localhost:%s/listnode/" % cache[COORDPORT]
-        response, content = http.request(COORDINATOR, method='POST', headers=None, body=str(sys.argv[1]))
+        address="http://localhost:%s/listnode/" % cache[COORDPORT]
+        response, content = http.request(address, method='POST', headers=None, body=str(sys.argv[1]))
         print "Class Node: Port " + str(sys.argv[1]) + " sent to Coordinator in port: " + cache[COORDPORT]
     def Bully(self,nodes):
         """implements the Bully algorithm"""
         pass
 
 
-
 class Coordinator:
     #"""Implements Coordinator object logic"""
+
+    def checkState(self, port, workload):
+        address = "http://localhost:%s/getstate/" % port
+        response, content = http.request(address, method='GET')
+        if int(content) == workload:
+            print"class Coordinator: checkState(): workload confirmed at %s with %s" %(address, content)
+            cache[nodes][port]+=1 #+1 to selected workload
+            return True
+        else:
+            print "class Coordinator: checkState(): workloads do not match at: %s with %s. (Local info was %s)" %(address, content, workload)
+            return False
 
     def selectWorker(self):
         """selects the node with lowest workload for performing calculation"""
@@ -54,17 +64,23 @@ class Coordinator:
                 if int(value)< min_:
                     selected = key
                     min_=int(value)
-            cache[nodes][selected]+=1 #+1 to selected workload
+
             print "class Coordinator: selectWorker(): selected worker: " + selected
 
+            if self.checkState(selected, min_):
+                pass
+            else:
+                #request workloads from all nodes, an error has happened
+                pass
         else:
             print "class Coordinator: selectWorker(): no cache[nodes], returning None"
         return selected
 
+
     def forwardCalculation(node):
         """Fordwards calculations to a node"""
         pass
-    def updateWorkerLoads(self):
+    def refreshWorkerLoads(self):
         pass
 
 class NodeHandler(tornado.web.RequestHandler):
@@ -76,6 +92,9 @@ class NodeHandler(tornado.web.RequestHandler):
         Game logic. Takes the users guess and compares it to self generated coinflip.
         """
         #Timeout for testing purposes
+        global nodeWorkload
+        nodeWorkload +=1
+        print "NodeHandler: workload added at " + sys.argv[1]
         yield gen.Task(tornado.ioloop.IOLoop.instance().add_timeout, time.time()+5)
         #generate coin-flip
         value=random.randint(0,1)
@@ -98,6 +117,9 @@ class NodeHandler(tornado.web.RequestHandler):
     def _async_callback(self, response):
         print response
         self.write(response)
+        global nodeWorkload
+        nodeWorkload -= 1
+        print "NodeHandler: workload reduced at " + sys.argv[1]
         self.finish()
         #running only 1 IOLoop, stopping closes the server
         #tornado.ioloop.IOLoop.instance().stop()
@@ -147,6 +169,14 @@ class ListNodeHandler(tornado.web.RequestHandler):
         else:
             print "ListNodeHandler POST: Couldn't convert content to int" + str(content)
 
+class GetStateHandler(tornado.web.RequestHandler):
+    #interface for requesting node's workload info
+    @gen.coroutine
+    def get(self):
+
+        self.write(str(nodeWorkload))
+        self.finish()
+
 def startServer():
     """Greet Gateway and determine the role of the instance"""
     response, content = http.request(GATEWAY, method='GET', headers=None, body=None) #Send it off!
@@ -178,7 +208,8 @@ if __name__=="__main__":
     application = tornado.web.Application([
         (r"/node/", NodeHandler),
         (r"/coordinator/", CoordinatorHandler),
-        (r"/listnode/", ListNodeHandler, dict(cache=cache))
+        (r"/listnode/", ListNodeHandler, dict(cache=cache)),
+        (r"/getstate/", GetStateHandler)
         ], debug=1)
     main()
     application.listen(int(sys.argv[1]))
