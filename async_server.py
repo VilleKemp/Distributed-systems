@@ -28,8 +28,6 @@ server = None #server object
 class Node:
     #"""Implements Node object logic"""
 
-    def __init__(self):
-        pass
     def informCoordinator(self):
         """send address to coordinator"""
         COORDINATOR="http://localhost:%s/listnode/" % cache[COORDPORT]
@@ -43,21 +41,24 @@ class Node:
 
 class Coordinator:
     #"""Implements Coordinator object logic"""
-    def __init__(self):
-        self.workerLoads = dict()
 
     def selectWorker(self):
         """selects the node with lowest workload for performing calculation"""
         min_ = float("inf")
         selected = None
+
+        print "class Coordinator: selectWorker(): cache = "
+        print cache[nodes]
         if cache[nodes]:
             for key, value in cache[nodes].items():
-                if str(value)< min_:
+                if int(value)< min_:
                     selected = key
+                    min_=int(value)
             cache[nodes][selected]+=1 #+1 to selected workload
+            print "class Coordinator: selectWorker(): selected worker: " + selected
 
         else:
-            print "class Coordinator selectWorker(): no cache[nodes], returning None"
+            print "class Coordinator: selectWorker(): no cache[nodes], returning None"
         return selected
 
     def forwardCalculation(node):
@@ -114,14 +115,16 @@ class CoordinatorHandler(tornado.web.RequestHandler):
         which calculates the game result and then responds the result to client
         """
         http_client = tornado.httpclient.AsyncHTTPClient()
-        SLAVE = "http://localhost:%s/node/" % server.selectWorker()
+        worker = server.selectWorker()
+        SLAVE = "http://localhost:%s/node/" % worker
         print "CoordinatorHandler POST: Workload sent to " + SLAVE
         #sends post to node for game results
         response = yield http_client.fetch(SLAVE, method='POST',body=self.request.body)
+
         return_value=response.body
         #Return the string which came from the node
         self.write(return_value)
-
+        cache[nodes][worker] -= 1 #remove load from worklist
         self.finish()
 
     def set_default_headers(self):
@@ -140,9 +143,9 @@ class ListNodeHandler(tornado.web.RequestHandler):
         global cache
         if int(content):
             cache[nodes][str(content)]=0 #add node to worker list with 0 load
-            print "ListNodeHandler POST: Added node to cache: "+ str(content)
+            print "ListNodeHandler POST: Added node to cache: "+ str(cache[nodes])
         else:
-            print "ListNodeHandler POST: Couldn't convert content to int"
+            print "ListNodeHandler POST: Couldn't convert content to int" + str(content)
 
 def startServer():
     """Greet Gateway and determine the role of the instance"""
@@ -173,7 +176,7 @@ def main():
 if __name__=="__main__":
 
     application = tornado.web.Application([
-        (r"/node/", NodeHandler, dict(cache=cache)),
+        (r"/node/", NodeHandler),
         (r"/coordinator/", CoordinatorHandler),
         (r"/listnode/", ListNodeHandler, dict(cache=cache))
         ], debug=1)
