@@ -1,3 +1,5 @@
+START python gateway.py
+timeout 1
 START python async_server.py 8889
 timeout 1
 START python async_server.py 8890
